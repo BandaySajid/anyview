@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join a screen</title>
+    <link rel="stylesheet" href="css/toastify.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            background-color: red;
+            height: 100vh;
+            width: 100%;
+        }
+
+        .join-page {
+            height: 90%;
+            background-color: green;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+            position: relative;
+        }
+
+        .input-container {
+            margin: 1rem;
+            display: flex;
+            gap: 1rem;
+            height: 100%;
+            padding: 1rem;
+            background-color: aliceblue;
+            justify-content: center;
+        }
+
+        .input {
+            width: 100%;
+            padding: 0.2rem;
+            height: 100%;
+            text-align: center;
+            line-break: auto;
+            resize: none;
+        }
+
+        button {
+            font-weight: bold;
+            border-radius: 0.2rem;
+            padding: 0.5rem;
+            cursor: pointer;
+            border: none;
+            background-color: rgb(196, 245, 255);
+        }
+
+        .display-none {
+            display: none;
+        }
+
+        video {
+            display: none;
+        }
+
+        .full-screen{
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+        }
+    </style>
+</head>
+
+<body class="join">
+
+    <div class="container">
+        <div class="page join-page">
+            <h2>Join a screen</h2>
+            <div class="input-container">
+                <textarea type="text" class="input-field input" id="joinee-key"
+                    placeholder="Ask the host for offer key and paste it here.."></textarea>
+                <p class="joinee-command-text"></p>
+            </div>
+            <button class="submit-btn join-btn">Go</button>
+        </div>
+    </div>
+
+    <div class="screen">
+        <video autoplay width="400px"></video>
+    </div>
+
+</body>
+<script src="js/toastify.js"></script>
+<script src="js/script.js"></script>
+
+</html>

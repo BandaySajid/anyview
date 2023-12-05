@@ -1,0 +1,23 @@
+{
+  "dependencies": {
+    "@nut-tree/nut-js": "^3.1.2",
+    "express": "^4.18.2",
+    "robotjs": "^0.6.0",
+    "ws": "^8.14.2"
+  },
+  "type": "module",
+  "scripts": {
+    "start": "node src/app.js"
+  },
+  "name": "anyview",
+  "version": "1.0.0",
+  "description": "A lightweight remote screen controller directly through web.",
+  "main": "src/app.js",
+  "devDependencies": {},
+  "keywords": [
+    "screenshare",
+    "screen"
+  ],
+  "author": "Sajid Banday",
+  "license": "ISC"
+}
