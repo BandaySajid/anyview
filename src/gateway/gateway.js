@@ -26,13 +26,6 @@ const get_coordinates = async (X, Y) => {
     const current_window = await getActiveWindow();
     const region = await current_window.region;
 
-    setInterval(()=>{
-        console.log('current region w and h', screen_config.width, screen_config.height);
-    }, 3000);
-
-    // const x = Math.floor(region.left + (512 / width) * width);
-    // const y = Math.floor(region.top + (362 / height) * height);
-
     const x = Math.floor(region.left + (X / screen_config.width) * screen_config.width);
     const y = Math.floor(region.top + (Y / screen_config.height) * screen_config.height);
 
