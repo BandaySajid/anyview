@@ -97,17 +97,17 @@ const req = {
 const create_local_connection = async () => {
     local_connection = new RTCPeerConnection(peer_config);
     local_connection.onicecandidate = (e) => {
-        console.log('got an ice candidate')
         handle_on_ice_candidate(local_connection.localDescription);
     };
 
     local_connection.oniceconnectionstatechange = (state) => {
-        console.log('ice connection state', state);
+        if(state === 'connected'){
+            alert('Press F11 to fullscreen, otherwise there will be problems!');
+        };
     };
 
     local_connection.addEventListener('track', async (event) => {
         const [remoteStream] = event.streams;
-        console.log('got Stream')
         video_elem.srcObject = remoteStream;
     });
 
