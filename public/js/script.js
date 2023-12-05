@@ -116,20 +116,22 @@ const create_local_connection = async () => {
 
 async function handle_on_ice_candidate(candidate) {
     if (join_type === 'host') {
-        let resp = await req.post('/api/encrypt/offer', { offer: JSON.stringify(candidate) });
-        if (resp.status === 200) {
-            offer_key.value = resp.data.encrypted;
-            document.querySelector('.host-command-text').textContent = 'Copy this offer key and share it with the peer who wants to join';
-            toast('Copy the offer key and share it with the peer!');
-        }
+        offer_key.value = JSON.stringify(candidate);
+        // let resp = await req.post('/api/encrypt/offer', { offer: JSON.stringify(candidate) });
+        // if (resp.status === 200) {
+        //     offer_key.value = resp.data.encrypted;
+        //     document.querySelector('.host-command-text').textContent = 'Copy this offer key and share it with the peer who wants to join';
+        //     toast('Copy the offer key and share it with the peer!');
+        // }
 
     } else if (join_type === 'join') {
-        let resp = await req.post('/api/encrypt/answer', { answer: JSON.stringify(candidate) });
-        if (resp.status === 200) {
-            join_key.value = resp.data.encrypted
-            document.querySelector('.joinee-command-text').textContent = 'Copy this answer key and share it with the host';
-            toast('Copy the answer key and share it with the host!');
-        };
+        join_key.value = JSON.stringify(candidate)
+        // let resp = await req.post('/api/encrypt/answer', { answer: JSON.stringify(candidate) });
+        // if (resp.status === 200) {
+        //     // join_key.value = resp.data.encrypted
+        //     document.querySelector('.joinee-command-text').textContent = 'Copy this answer key and share it with the host';
+        //     toast('Copy the answer key and share it with the host!');
+        // };
     };
 };
 
@@ -221,11 +223,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (join_type === 'host') {
         create_local_connection();
         host_btn.addEventListener('click', async (event) => {
-            const resp = await req.post('/api/decrypt/answer', { answer: answer_key.value });
-            if (resp.status === 200) {
-                answer_key.value = resp.data.decrypted;
-                handle_remote_description(JSON.parse(resp.data.decrypted));
-            };
+            handle_remote_description(JSON.parse(answer_key.value));
+            // const resp = await req.post('/api/decrypt/answer', { answer: answer_key.value });
+            // if (resp.status === 200) {
+            //     answer_key.value = resp.data.decrypted;
+            //     handle_remote_description(JSON.parse(resp.data.decrypted));
+            // };
         });
 
         // answer_key.addEventListener("input", function () {
@@ -233,12 +236,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         // });
     } else if (join_type === 'join') {
         join_btn.addEventListener('click', async (event) => {
-            const resp = await req.post('/api/decrypt/offer', { offer: join_key.value });
-            if (resp.status === 200) {
-                join_key.value = resp.data.decrypted;
-                create_local_connection();
-                handle_remote_description(JSON.parse(resp.data.decrypted));
-            };
+            create_local_connection();
+            handle_remote_description(JSON.parse(join_key.value));
+            // const resp = await req.post('/api/decrypt/offer', { offer: join_key.value });
+            // if (resp.status === 200) {
+            //     join_key.value = resp.data.decrypted;
+            //     create_local_connection();
+            //     handle_remote_description(JSON.parse(resp.data.decrypted));
+            // };
         })
     };
 });
