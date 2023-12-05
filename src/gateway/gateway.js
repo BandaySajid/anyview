@@ -7,15 +7,10 @@ import {
     keyboard,
     Key,
     Point,
-    randomPointIn,
-    centerOf,
-    sleep,
-    windowWithTitle,
 } from '@nut-tree/nut-js';
 import key_codes from '../utils/key_codes.js';
 
 //518, 362
-
 
 const screen_config = {
     width: await screen.width(),
@@ -48,28 +43,19 @@ const send_mouse_input = async (event) => {
 
 const send_keyboard_input = async (event) => {
     if (event.keys.shiftKey && event.keyCode >= 65 && event.keyCode <= 90) {
-        event.keys.key = key_codes[`${event.keyCode}`].toUpperCase();
+        event.keys.keyname = key_codes[`${event.keyCode}`].toUpperCase();
     };
-    const keys_to_press = Object.values(event.keys).filter(val => val); //will filter out null / undefined keys
-    await keyboard.pressKey(keys_to_press);
-    await keyboard.releaseKey(keys_to_press);
 
-    /*
-    {
-        type: 'keyboard',
-        event: {
-            type: 'key',
-            keys : {
-                key: 'r',
-                ctrlKey: 17,
-                shiftKey: 16,
-                altKey: 18
-            },
-        keyCode: 82,
-        code: 'KeyR'
-      }
-    }
-    */
+    let keys_to_press = Object.values(event.keys).filter(val => val); //will filter out null / undefined keys
+
+    keys_to_press = keys_to_press.filter((key)=>{
+        let code = key_codes[key];
+        return Key[code];
+    });
+
+    await keyboard.pressKey(...keys_to_press);
+    await keyboard.releaseKey(...keys_to_press);
+
 };
 
 const WSS = new WebSocketServer({ host: config.gateway.host, port: config.gateway.port });
@@ -82,7 +68,7 @@ WSS.on('connection', (socket) => {
                 case 'keyboard':
                     console.log('[KEYBOARD]: got an event', msg);
                     if (msg.event?.type === 'key') {
-                        if (socket.prev_key.keys.shiftKey && msg.keys.shiftKey) {
+                        if (socket.prev_key.keys.shiftKey && msg.event.keys.shiftKey) {
                             socket.prev_key = msg.event;
                         } else {
                             console.log('triggering above keyboard event!');
@@ -128,28 +114,3 @@ WSS.on('close', () => {
 });
 
 export default WSS;
-
-/*
-{
-    type: 'keyboard',
-    event: {
-        type: 'key',
-        key: 'r',
-    keyCode: 82,
-    ctrlKey: false,
-    shiftKey: false,
-    altKey: false,
-    code: 'KeyR'
-  }
-}
-
-[MOUSE]: got an event {
-  type: 'mouse',
-  event: { type: 'click', positions: { X: 757, Y: 656 }, key: 'left' }
-}
-[MOUSE]: got an event {
-  type: 'mouse',
-  event: { type: 'mousemove', positions: { X: 757, Y: 616 } }
-}
-
-*/

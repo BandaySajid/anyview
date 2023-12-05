@@ -11,20 +11,32 @@
             margin: 0;
             padding: 0;
         }
+        body{
+            overflow: hidden;
+        }
 
         .container {
-            background-color: red;
+            display: flex;
+            justify-content: center;
+            align-items:center;
             height: 100vh;
             width: 100%;
+            background-image: linear-gradient(75deg,rgba(100,10,150,0.8),rgba(90,75,150,0.9));
         }
 
         .join-page {
             height: 90%;
-            background-color: green;
+            width: 90%;
             display: flex;
             flex-direction: column;
             padding: 1rem;
             position: relative;
+        }
+        .join-page h2{
+            color: rgba(255,255,255,0.7);
+            padding: 1vh;
+            box-shadow: 1px 2px 1px rgba(255,255,255,0.4);
+            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
         }
 
         .input-container {
@@ -33,7 +45,8 @@
             gap: 1rem;
             height: 100%;
             padding: 1rem;
-            background-color: aliceblue;
+            overflow: hidden;
+            align-items: center;
             justify-content: center;
         }
 
@@ -42,6 +55,8 @@
             padding: 0.2rem;
             height: 100%;
             text-align: center;
+            background: rgba(0,0,0,0.7);
+            color: rgba(255,255,255,0.7);
             line-break: auto;
             resize: none;
         }
@@ -52,7 +67,11 @@
             padding: 0.5rem;
             cursor: pointer;
             border: none;
-            background-color: rgb(196, 245, 255);
+            background-color: rgba(25, 25, 25,0.7);
+            color: rgba(255,255,255,0.7);
+            width: 30%;
+            align-self: center;
+            max-width: 200px;
         }
 
         .display-none {
@@ -77,7 +96,7 @@
 
     <div class="container">
         <div class="page join-page">
-            <h2>Join a screen</h2>
+            <h2>Join the peer</h2>
             <div class="input-container">
                 <textarea type="text" class="input-field input" id="joinee-key"
                     placeholder="Ask the host for offer key and paste it here.."></textarea>

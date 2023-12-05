@@ -22,6 +22,20 @@ gateway.onopen = handle_gateway_open;
 gateway.onmessage = handle_gateway_message;
 gateway.onerror = handle_gateway_error;
 
+function utf8ToBase64(str) {
+    const utf8Bytes = new TextEncoder().encode(str);
+    return btoa(String.fromCharCode(...utf8Bytes));
+};
+
+function base64ToUtf8(base64Str) {
+    const binaryStr = atob(base64Str);
+    const utf8Bytes = new Uint8Array(binaryStr.length);
+    for (let i = 0; i < binaryStr.length; i++) {
+        utf8Bytes[i] = binaryStr.charCodeAt(i);
+    }
+    return new TextDecoder().decode(utf8Bytes);
+};
+
 const toast = (text, type) => {
     Toastify({
         text: text,
@@ -116,22 +130,9 @@ const create_local_connection = async () => {
 
 async function handle_on_ice_candidate(candidate) {
     if (join_type === 'host') {
-        offer_key.value = JSON.stringify(candidate);
-        // let resp = await req.post('/api/encrypt/offer', { offer: JSON.stringify(candidate) });
-        // if (resp.status === 200) {
-        //     offer_key.value = resp.data.encrypted;
-        //     document.querySelector('.host-command-text').textContent = 'Copy this offer key and share it with the peer who wants to join';
-        //     toast('Copy the offer key and share it with the peer!');
-        // }
-
+        offer_key.value = utf8ToBase64(JSON.stringify(candidate));
     } else if (join_type === 'join') {
-        join_key.value = JSON.stringify(candidate)
-        // let resp = await req.post('/api/encrypt/answer', { answer: JSON.stringify(candidate) });
-        // if (resp.status === 200) {
-        //     // join_key.value = resp.data.encrypted
-        //     document.querySelector('.joinee-command-text').textContent = 'Copy this answer key and share it with the host';
-        //     toast('Copy the answer key and share it with the host!');
-        // };
+        join_key.value = utf8ToBase64(JSON.stringify(candidate));
     };
 };
 
@@ -223,28 +224,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (join_type === 'host') {
         create_local_connection();
         host_btn.addEventListener('click', async (event) => {
-            handle_remote_description(JSON.parse(answer_key.value));
-            // const resp = await req.post('/api/decrypt/answer', { answer: answer_key.value });
-            // if (resp.status === 200) {
-            //     answer_key.value = resp.data.decrypted;
-            //     handle_remote_description(JSON.parse(resp.data.decrypted));
-            // };
+            handle_remote_description(JSON.parse(base64ToUtf8(answer_key.value)));
         });
 
-        // answer_key.addEventListener("input", function () {
-        //     host_btn.disabled = answer_key.value.trim() === "";
-        // });
     } else if (join_type === 'join') {
         join_btn.addEventListener('click', async (event) => {
             create_local_connection();
-            handle_remote_description(JSON.parse(join_key.value));
-            // const resp = await req.post('/api/decrypt/offer', { offer: join_key.value });
-            // if (resp.status === 200) {
-            //     join_key.value = resp.data.decrypted;
-            //     create_local_connection();
-            //     handle_remote_description(JSON.parse(resp.data.decrypted));
-            // };
-        })
+            handle_remote_description(JSON.parse(base64ToUtf8(join_key.value)));
+        });
     };
 });
 
@@ -299,7 +286,7 @@ const events = function () {
 
     function handle_key_event(e) {
         e.preventDefault()
-        const message = { type: 'keyboard', event: { type: 'key', keyCode: e.keyCode, keys: { key: e.key, ctrlKey: e.ctrlKey ? 17 : false, shiftKey: e.shiftKey ? 16 : false, altKey: e.altKey ? 18 : false }, code: e.code } };
+        const message = { type: 'keyboard', event: { type: 'key', keyname: e.key, keys: { key: e.keyCode, ctrlKey: e.ctrlKey ? 17 : false, shiftKey: e.shiftKey ? 16 : false, altKey: e.altKey ? 18 : false }, code: e.code } };
         local_connection.data_channel.send(JSON.stringify(message));
     };
 

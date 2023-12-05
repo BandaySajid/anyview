@@ -12,7 +12,6 @@
   "version": "1.0.0",
   "description": "A lightweight remote screen controller directly through web.",
   "main": "src/app.js",
-  "devDependencies": {},
   "keywords": [
     "screenshare",
     "screen"
