@@ -11,13 +11,6 @@ const { WebSocketServer } = require('ws');
 
 //518, 362
 
-const screen_config = async () => {
-    return {
-        width: await screen.width(),
-        height: await screen.height(),
-    };
-};
-
 const get_coordinates = async (X, Y, client_width, client_height) => {
     const x = (X / client_width) * screen_config.width;
     const y = (Y / client_height) * screen_config.height;
@@ -41,13 +34,17 @@ const send_mouse_input = async (event) => {
 const send_keyboard_input = async (event) => {
     let keys_to_press = Object.values(event.keys).filter(val => val); //will filter out null / undefined keys
 
-    keys_to_press = keys_to_press.filter((key) => {
+    keys_to_press = keys_to_press.map((key) => {
         let code = key_codes[key];
         return Key[code];
     });
 
-    await keyboard.pressKey(...keys_to_press);
-    await keyboard.releaseKey(...keys_to_press);
+    if (event.type === 'keydown') {
+        await keyboard.pressKey(...keys_to_press);
+    } else if (event.type === 'keyup') {
+        await keyboard.releaseKey(...keys_to_press);
+    };
+
 };
 
 const WSS = new WebSocketServer({ host: config.gateway.host, port: config.gateway.port });
@@ -59,14 +56,12 @@ WSS.on('connection', (socket) => {
             switch (msg.type) {
                 case 'keyboard':
                     console.log('[KEYBOARD]: got an event', msg);
-                    if (msg.event?.type === 'key') {
-                        if (socket.prev_key?.keys.shiftKey && msg.event.keys.shiftKey) {
-                            socket.prev_key = msg.event;
-                        } else {
-                            console.log('triggering above keyboard event!');
-                            await send_keyboard_input(msg.event);
-                            socket.prev_key = msg.event;
-                        };
+                    if (socket.prev_key?.keys.shiftKey && msg.event.keys.shiftKey) {
+                        socket.prev_key = msg.event;
+                    } else {
+                        console.log('triggering above keyboard event!');
+                        await send_keyboard_input(msg.event);
+                        socket.prev_key = msg.event;
                     };
                     break;
                 case 'mouse':
@@ -95,10 +90,16 @@ WSS.on('error', (err) => {
     console.log('[WEBSOCKET]: Error with websocket server:', err);
 });
 
-WSS.on('listening', () => {
+WSS.on('listening', async () => {
     keyboard.config.autoDelayMs = 10;
     mouse.config.autoDelayMs = 10;
-    console.log('[WEBSOCKET]: Server is listening on:', WSS.address());
+    screen.config.dimensions = {
+        width: await screen.width(),
+        height: await screen.height(),
+    };
+    if(process.env.MODE === 'dev'){
+        console.log('[WEBSOCKET]: Server is listening on:', WSS.address());
+    };
 });
 
 WSS.on('close', () => {

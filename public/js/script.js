@@ -184,11 +184,11 @@ function handle_data_channel(e) {
             const events_tool = events();
             video_elem.addEventListener('mousemove', events_tool.handle_mouse_event);
             video_elem.addEventListener('click', events_tool.handle_mouse_event);
-            video_elem.addEventListener('contextmenu', function (event) {
+            document.addEventListener('contextmenu', function (event) {
                 event.preventDefault();
                 events_tool.handle_mouse_event(e);
             });
-            video_elem.addEventListener('keyup', events_tool.handle_key_event);
+            document.addEventListener('keyup', events_tool.handle_key_event);
         };
     };
     data_channel.onclose = e => {
@@ -286,7 +286,7 @@ const events = function () {
 
     function handle_key_event(e) {
         e.preventDefault()
-        const message = { type: 'keyboard', event: { type: 'key', keyname: e.key, keys: { key: e.keyCode, ctrlKey: e.ctrlKey ? 17 : false, shiftKey: e.shiftKey ? 16 : false, altKey: e.altKey ? 18 : false }, code: e.code } };
+        const message = { type: 'keyboard', event: { type: e.type, keyname: e.key, keys: { key: e.keyCode, ctrlKey: e.ctrlKey ? 17 : false, shiftKey: e.shiftKey ? 16 : false, altKey: e.altKey ? 18 : false }, code: e.code, metaKey : e.metaKey ? 91 : false} };
         local_connection.data_channel.send(JSON.stringify(message));
     };
 

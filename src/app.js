@@ -27,5 +27,10 @@ app.get('/join', (req, res) => {
 const server = http.createServer(app);
 
 server.listen(config.http.port, config.http.host, () => {
-    console.log('[HTTP] Server is listening on:', server.address());
+    if (process.env.MODE) {
+        console.log('[HTTP] Server is listening on:', server.address());
+    } else {
+        console.log(`[ANYVIEW]: Application Started...`);
+        console.log(`[HTTP]: Go to this link to use the application: http://${server.address().address}:${server.address().port}`);
+    };
 });
