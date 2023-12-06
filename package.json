@@ -4,10 +4,10 @@
     "express": "^4.18.2",
     "ws": "^8.14.2"
   },
-  "type": "module",
   "scripts": {
     "start": "node src/app.js"
   },
+  "bin": "src/app.js",
   "name": "anyview",
   "version": "1.0.0",
   "description": "A lightweight remote screen controller directly through web.",
@@ -17,5 +17,11 @@
     "screen"
   ],
   "author": "Sajid Banday",
-  "license": "ISC"
+  "license": "ISC",
+  "pkg": {
+    "scripts": "public/**/*.js",
+    "assets": "public/**/*",
+    "targets": [ "latest-linux-x64", "latest-win-x64" ],
+    "outputPath": "dist"
+  }
 }

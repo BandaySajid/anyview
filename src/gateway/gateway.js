@@ -1,19 +1,21 @@
-import { WebSocketServer } from 'ws';
-import config from '../../config.js';
-import {
+const {
     mouse,
     screen,
     keyboard,
     Key,
     Point,
-} from '@nut-tree/nut-js';
-import key_codes from '../utils/key_codes.js';
+} = require('@nut-tree/nut-js');
+const key_codes = require('../utils/key_codes.js');
+const config = require('../../config.js');
+const { WebSocketServer } = require('ws');
 
 //518, 362
 
-const screen_config = {
-    width: await screen.width(),
-    height: await screen.height(),
+const screen_config = async () => {
+    return {
+        width: await screen.width(),
+        height: await screen.height(),
+    };
 };
 
 const get_coordinates = async (X, Y, client_width, client_height) => {
@@ -103,4 +105,4 @@ WSS.on('close', () => {
     console.log('[WEBSOCKET]: Server has been closed!');
 });
 
-export default WSS;
+module.exports = WSS;

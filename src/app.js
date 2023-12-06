@@ -1,12 +1,9 @@
-import express from 'express';
-// import { WebSocketServer } from 'ws';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import config from '../config.js';
-import gateway from './gateway/gateway.js';
-import http from 'node:http';
+const express = require('express');
+const path = require('node:path');
+const config = require('../config.js');
+const gateway = require('./gateway/gateway.js');
+const http = require('node:http');
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
 const pubic_path = path.join(__dirname, '../', 'public');

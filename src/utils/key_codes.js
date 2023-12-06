@@ -1,4 +1,4 @@
-export default {
+module.exports = {
     8: 'Backspace',
     9: 'Tab',
     13: 'Return',
