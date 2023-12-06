@@ -101,7 +101,7 @@ const create_local_connection = async () => {
     };
 
     local_connection.oniceconnectionstatechange = (state) => {
-        if(state === 'connected'){
+        if (state === 'connected') {
             alert('Press F11 to fullscreen, otherwise there will be problems!');
         };
     };
@@ -184,11 +184,11 @@ function handle_data_channel(e) {
             const events_tool = events();
             video_elem.addEventListener('mousemove', events_tool.handle_mouse_event);
             video_elem.addEventListener('click', events_tool.handle_mouse_event);
-            document.addEventListener('contextmenu', function (event) {
+            video_elem.addEventListener('contextmenu', function (event) {
                 event.preventDefault();
                 events_tool.handle_mouse_event(e);
             });
-            document.addEventListener('keyup', events_tool.handle_key_event);
+            video_elem.addEventListener('keyup', events_tool.handle_key_event);
         };
     };
     data_channel.onclose = e => {
@@ -275,9 +275,9 @@ const events = function () {
         console.log('current mouse positions are:', positions);
         let message;
         if (e.type === 'click') {
-            message = { type: 'mouse', event: { type: e.type, positions, key: e.type === 'contextmenu' ? 'right' : 'left' } };
+            message = { type: 'mouse', event: { type: e.type, positions, key: e.type === 'contextmenu' ? 'right' : 'left', dimensions: { width: video_elem.offsetWidth, height: video_elem.offsetHeight } } };
         } else if (e.type === 'mousemove') {
-            message = { type: 'mouse', event: { type: e.type, positions } };
+            message = { type: 'mouse', event: { type: e.type, positions, dimensions: { width: video_elem.offsetWidth, height: video_elem.offsetHeight } } };
         }
         if (message) {
             local_connection.data_channel.send(JSON.stringify(message));

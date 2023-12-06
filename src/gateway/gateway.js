@@ -3,7 +3,6 @@ import config from '../../config.js';
 import {
     mouse,
     screen,
-    getActiveWindow,
     keyboard,
     Key,
     Point,
@@ -17,19 +16,15 @@ const screen_config = {
     height: await screen.height(),
 };
 
-const get_coordinates = async (X, Y) => {
-    const current_window = await getActiveWindow();
-    const region = await current_window.region;
-
-    const x = Math.floor(region.left + (X / screen_config.width) * screen_config.width);
-    const y = Math.floor(region.top + (Y / screen_config.height) * screen_config.height);
-
+const get_coordinates = async (X, Y, client_width, client_height) => {
+    const x = (X / client_width) * screen_config.width;
+    const y = (Y / client_height) * screen_config.height;
     return new Point(x, y);
 };
 
 const send_mouse_input = async (event) => {
     if (event.type === 'click') {
-        const mouse_position = await get_coordinates(event.positions.X, event.positions.Y);
+        const mouse_position = await get_coordinates(event.positions.X, event.positions.Y, event.dimensions.width, event.dimensions.height);
         await mouse.setPosition(mouse_position);
         if (event.key === 'right') {
             await mouse.rightClick();
