@@ -3,6 +3,7 @@ const path = require('node:path');
 const config = require('../config.js');
 const gateway = require('./gateway/gateway.js');
 const http = require('node:http');
+console.log(process.env.MODE)
 
 const app = express();
 

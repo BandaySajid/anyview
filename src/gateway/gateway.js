@@ -97,7 +97,7 @@ WSS.on('listening', async () => {
         width: await screen.width(),
         height: await screen.height(),
     };
-    if(process.env.MODE === 'dev'){
+    if(process.env.MODE === 'DEV'){
         console.log('[WEBSOCKET]: Server is listening on:', WSS.address());
     };
 });

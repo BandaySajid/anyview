@@ -5,7 +5,7 @@
     "ws": "^8.14.2"
   },
   "scripts": {
-    "start": "node src/app.js"
+    "start": "export MODE=DEV && node src/app.js"
   },
   "bin": "src/app.js",
   "name": "anyview",
