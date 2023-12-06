@@ -8,12 +8,13 @@ const {
 const key_codes = require('../utils/key_codes.js');
 const config = require('../../config.js');
 const { WebSocketServer } = require('ws');
+const log = require('../utils/log.js');
 
 //518, 362
 
 const get_coordinates = async (X, Y, client_width, client_height) => {
-    const x = (X / client_width) * screen_config.width;
-    const y = (Y / client_height) * screen_config.height;
+    const x = (X / client_width) * screen.config.dimensions.width;
+    const y = (Y / client_height) * screen.config.dimensions.height;
     return new Point(x, y);
 };
 
@@ -55,29 +56,29 @@ WSS.on('connection', (socket) => {
             const msg = JSON.parse(message);
             switch (msg.type) {
                 case 'keyboard':
-                    console.log('[KEYBOARD]: got an event', msg);
+                    log('[KEYBOARD]: got an event', msg);
                     if (socket.prev_key?.keys.shiftKey && msg.event.keys.shiftKey) {
                         socket.prev_key = msg.event;
                     } else {
-                        console.log('triggering above keyboard event!');
+                        log('triggering above keyboard event!');
                         await send_keyboard_input(msg.event);
                         socket.prev_key = msg.event;
                     };
                     break;
                 case 'mouse':
-                    console.log('[MOUSE]: got an event', msg);
+                    log('[MOUSE]: got an event', msg);
                     if (msg.event?.type === 'click') {
-                        console.log('triggering above mouse event!');
+                        log('triggering above mouse event!');
                         await send_mouse_input(msg.event);
                     };
                     break;
                 default:
-                    console.log('[UNSUPPORTED]: got an invalid message', msg);
+                    log('[UNSUPPORTED]: got an invalid message', msg);
                     socket.send(JSON.stringify({ type: 'error', error: 'only keyboard and mouse events can be sent!' }));
                     break;
             };
         } catch (err) {
-            console.log('[ERROR]: Message is not a valid json:', { err: err, message: message.toString() });
+            log('[ERROR]: Message is not a valid json:', { err: err, message: message.toString() });
         };
     });
 
@@ -87,7 +88,7 @@ WSS.on('connection', (socket) => {
 });
 
 WSS.on('error', (err) => {
-    console.log('[WEBSOCKET]: Error with websocket server:', err);
+    console.error('[WEBSOCKET]: Error with websocket server:', err);
 });
 
 WSS.on('listening', async () => {
@@ -97,9 +98,7 @@ WSS.on('listening', async () => {
         width: await screen.width(),
         height: await screen.height(),
     };
-    if(process.env.MODE === 'DEV'){
-        console.log('[WEBSOCKET]: Server is listening on:', WSS.address());
-    };
+    log('[WEBSOCKET]: Server is listening on:', WSS.address());
 });
 
 WSS.on('close', () => {
