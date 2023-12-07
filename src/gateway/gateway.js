@@ -13,12 +13,14 @@ const log = require('../utils/log.js');
 
 //518, 362
 
+//converting coordinates from one screen to match with other screen size.
 const get_coordinates = (X, Y, client_width, client_height) => {
     const x = (X / client_width) * screen.config.dimensions.width;
     const y = (Y / client_height) * screen.config.dimensions.height;
     return new Point(x, y);
 };
 
+//sending mouse inputs based on the events sent by the browser.
 const send_mouse_input = async (event) => {
     const mouse_position = get_coordinates(event.positions.X, event.positions.Y, event.dimensions.width, event.dimensions.height);
     switch (event.type) {
@@ -36,8 +38,10 @@ const send_mouse_input = async (event) => {
     };
 };
 
+//sending keyboard inputs based on the events sent by the browser.
 const send_keyboard_input = async (event) => {
-    const key_to_press = Key[key_codes[event.keyCode]];
+
+    const key_to_press = Key[key_codes[event.which]];
     if (event.type === 'keydown') {
         await keyboard.pressKey(key_to_press);
     } else if (event.type === 'keyup') {
@@ -98,3 +102,4 @@ WSS.on('close', () => {
 });
 
 module.exports = WSS;
+
