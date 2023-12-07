@@ -36,11 +36,9 @@ var event_to_object = function (e) {
             clientY: e.clientY,
             composed: e.composed,
             ctrlKey: e.ctrlKey,
-            currentTarget: e.currentTarget ? e.currentTarget.outerHTML : null,
             defaultPrevented: e.defaultPrevented,
             detail: e.detail,
             eventPhase: e.eventPhase,
-            fromElement: e.fromElement ? e.fromElement.outerHTML : null,
             isTrusted: e.isTrusted,
             layerX: e.layerX,
             layerY: e.layerY,
@@ -51,17 +49,12 @@ var event_to_object = function (e) {
             offsetY: e.offsetY,
             pageX: e.pageX,
             pageY: e.pageY,
-            relatedTarget: e.relatedTarget ? e.relatedTarget.outerHTML : null,
             returnValue: e.returnValue,
             screenX: e.screenX,
             screenY: e.screenY,
             shiftKey: e.shiftKey,
-            sourceCapabilities: e.sourceCapabilities ? e.sourceCapabilities.toString() : null,
-            target: e.target ? e.target.outerHTML : null,
             timeStamp: e.timeStamp,
-            toElement: e.toElement ? e.toElement.outerHTML : null,
             type: e.type,
-            view: e.view ? e.view.toString() : null,
             which: e.which,
             x: e.x,
             y: e.y
@@ -174,7 +167,7 @@ const create_local_connection = async () => {
 
     if (join_type === 'host') {
         await set_media_tracks({
-            video: true,
+            video: { frameRate: 100, displaySurface: 'monitor' },
             audio: false,
         });
         handle_data_channel();
@@ -238,7 +231,7 @@ function handle_data_channel(e) {
     data_channel.onmessage = e => {
         gateway.send(e.data);
     };
-    data_channel.onopen = e => {
+    data_channel.onopen = event => {
         console.log('[DATA-CHANNEL]: Connection established with peer!');
         if (e) {
             const events_tool = events();
@@ -249,6 +242,7 @@ function handle_data_channel(e) {
                 event.preventDefault();
                 events_tool.handle_mouse_event(event);
             });
+            document.addEventListener('keydown', events_tool.handle_key_event);
             document.addEventListener('keyup', events_tool.handle_key_event);
         };
     };
@@ -328,7 +322,6 @@ function handle_gateway_error(event) {
 
 //logic for mouse and keyboard events.
 const events = function () {
-    // let click_count = 0;
     function handle_mouse_event(e) {
         e = event_to_object(e);
         let x = e.clientX - this.offsetLeft;
@@ -343,7 +336,8 @@ const events = function () {
 
     function handle_key_event(e) {
         e.preventDefault()
-        const message = { type: 'keyboard', event: { type: e.type, keyname: e.key, keys: { key: e.keyCode, ctrlKey: e.ctrlKey ? 17 : false, shiftKey: e.shiftKey ? 16 : false, altKey: e.altKey ? 18 : false }, code: e.code, metaKey: e.metaKey ? 91 : false } };
+        e = event_to_object(e);
+        const message = { type: 'keyboard', event: e };
         local_connection.data_channel.send(JSON.stringify(message));
     };
 

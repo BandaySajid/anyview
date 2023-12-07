@@ -37,18 +37,12 @@ const send_mouse_input = async (event) => {
 };
 
 const send_keyboard_input = async (event) => {
-    let keys_to_press = Object.values(event.keys).filter(val => val); //will filter out null / undefined keys
-
-    keys_to_press = keys_to_press.map((key) => {
-        let code = key_codes[`${key}`];
-        return Key[`${code}`];
-    });
-
-    if (event.type === 'keyup') {
-        await keyboard.pressKey(...keys_to_press);
-        await keyboard.releaseKey(...keys_to_press);
+    const key_to_press = Key[key_codes[event.keyCode]];
+    if (event.type === 'keydown') {
+        await keyboard.pressKey(key_to_press);
+    } else if (event.type === 'keyup') {
+        await keyboard.releaseKey(key_to_press);
     };
-
 };
 
 const WSS = new WebSocketServer({ host: config.gateway.host, port: config.gateway.port });
@@ -62,13 +56,8 @@ WSS.on('connection', (socket) => {
             switch (msg.type) {
                 case 'keyboard':
                     log('[KEYBOARD]: got an event', msg);
-                    if (socket.keyboard.prev_event?.keys.shiftKey && msg.event.keys.shiftKey) {
-                        socket.keyboard.prev_event = msg.event;
-                    } else {
-                        await send_keyboard_input(msg.event);
-                        log('triggered above keyboard event!');
-                        socket.keyboard.prev_event = msg.event;
-                    };
+                    await send_keyboard_input(msg.event);
+                    log('triggered above keyboard event!');
                     break;
                 case 'mouse':
                     log('[MOUSE]: got an event', msg.event);
