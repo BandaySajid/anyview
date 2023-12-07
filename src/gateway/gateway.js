@@ -4,6 +4,7 @@ const {
     keyboard,
     Key,
     Point,
+    Button,
 } = require('@nut-tree/nut-js');
 const key_codes = require('../utils/key_codes.js');
 const config = require('../../config.js');
@@ -12,37 +13,39 @@ const log = require('../utils/log.js');
 
 //518, 362
 
-const get_coordinates = async (X, Y, client_width, client_height) => {
+const get_coordinates = (X, Y, client_width, client_height) => {
     const x = (X / client_width) * screen.config.dimensions.width;
     const y = (Y / client_height) * screen.config.dimensions.height;
     return new Point(x, y);
 };
 
 const send_mouse_input = async (event) => {
-    if (event.type === 'click') {
-        const mouse_position = await get_coordinates(event.positions.X, event.positions.Y, event.dimensions.width, event.dimensions.height);
-        await mouse.setPosition(mouse_position);
-        if (event.key === 'right') {
-            await mouse.rightClick();
-        } else if (mouse.key === 'left') {
-            await mouse.leftClick();
-        };
-    }/*else if(event.type === 'mousemove'){
-        await mouse.setPosition(mouse_position);
-    };*/
+    const mouse_position = get_coordinates(event.positions.X, event.positions.Y, event.dimensions.width, event.dimensions.height);
+    switch (event.type) {
+        case 'mousedown':
+            await mouse.setPosition(mouse_position);
+            await mouse.pressButton(event.button === 0 ? Button.LEFT : Button.RIGHT);
+            break;
+        case 'mouseup':
+            await mouse.setPosition(mouse_position);
+            await mouse.releaseButton(event.button === 0 ? Button.LEFT : Button.RIGHT);
+            break;
+        case 'mousemove':
+            await mouse.setPosition(mouse_position);
+            break;
+    };
 };
 
 const send_keyboard_input = async (event) => {
     let keys_to_press = Object.values(event.keys).filter(val => val); //will filter out null / undefined keys
 
     keys_to_press = keys_to_press.map((key) => {
-        let code = key_codes[key];
-        return Key[code];
+        let code = key_codes[`${key}`];
+        return Key[`${code}`];
     });
 
-    if (event.type === 'keydown') {
+    if (event.type === 'keyup') {
         await keyboard.pressKey(...keys_to_press);
-    } else if (event.type === 'keyup') {
         await keyboard.releaseKey(...keys_to_press);
     };
 
@@ -51,26 +54,26 @@ const send_keyboard_input = async (event) => {
 const WSS = new WebSocketServer({ host: config.gateway.host, port: config.gateway.port });
 
 WSS.on('connection', (socket) => {
+    socket.keyboard = {};
+    socket.mouse = {};
     socket.on("message", async (message) => {
         try {
             const msg = JSON.parse(message);
             switch (msg.type) {
                 case 'keyboard':
                     log('[KEYBOARD]: got an event', msg);
-                    if (socket.prev_key?.keys.shiftKey && msg.event.keys.shiftKey) {
-                        socket.prev_key = msg.event;
+                    if (socket.keyboard.prev_event?.keys.shiftKey && msg.event.keys.shiftKey) {
+                        socket.keyboard.prev_event = msg.event;
                     } else {
-                        log('triggering above keyboard event!');
                         await send_keyboard_input(msg.event);
-                        socket.prev_key = msg.event;
+                        log('triggered above keyboard event!');
+                        socket.keyboard.prev_event = msg.event;
                     };
                     break;
                 case 'mouse':
-                    log('[MOUSE]: got an event', msg);
-                    if (msg.event?.type === 'click') {
-                        log('triggering above mouse event!');
-                        await send_mouse_input(msg.event);
-                    };
+                    log('[MOUSE]: got an event', msg.event);
+                    await send_mouse_input(msg.event);
+                    log('triggered above mouse event!');
                     break;
                 default:
                     log('[UNSUPPORTED]: got an invalid message', msg);

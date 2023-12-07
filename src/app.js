@@ -27,7 +27,7 @@ app.get('/join', (req, res) => {
 const server = http.createServer(app);
 
 server.listen(config.http.port, config.http.host, () => {
-    if (process.env.MODE) {
+    if (process.env.MODE === 'DEV') {
         console.log('[HTTP] Server is listening on:', server.address());
     } else {
         console.log(`[ANYVIEW]: Application Started...`);

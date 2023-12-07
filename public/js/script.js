@@ -22,6 +22,55 @@ gateway.onopen = handle_gateway_open;
 gateway.onmessage = handle_gateway_message;
 gateway.onerror = handle_gateway_error;
 
+// Generate an object version of the event.
+var event_to_object = function (e) {
+    if (e) {
+        let o = {
+            altKey: e.altKey,
+            bubbles: e.bubbles,
+            button: e.button,
+            buttons: e.buttons,
+            cancelBubble: e.cancelBubble,
+            cancelable: e.cancelable,
+            clientX: e.clientX,
+            clientY: e.clientY,
+            composed: e.composed,
+            ctrlKey: e.ctrlKey,
+            currentTarget: e.currentTarget ? e.currentTarget.outerHTML : null,
+            defaultPrevented: e.defaultPrevented,
+            detail: e.detail,
+            eventPhase: e.eventPhase,
+            fromElement: e.fromElement ? e.fromElement.outerHTML : null,
+            isTrusted: e.isTrusted,
+            layerX: e.layerX,
+            layerY: e.layerY,
+            metaKey: e.metaKey,
+            movementX: e.movementX,
+            movementY: e.movementY,
+            offsetX: e.offsetX,
+            offsetY: e.offsetY,
+            pageX: e.pageX,
+            pageY: e.pageY,
+            relatedTarget: e.relatedTarget ? e.relatedTarget.outerHTML : null,
+            returnValue: e.returnValue,
+            screenX: e.screenX,
+            screenY: e.screenY,
+            shiftKey: e.shiftKey,
+            sourceCapabilities: e.sourceCapabilities ? e.sourceCapabilities.toString() : null,
+            target: e.target ? e.target.outerHTML : null,
+            timeStamp: e.timeStamp,
+            toElement: e.toElement ? e.toElement.outerHTML : null,
+            type: e.type,
+            view: e.view ? e.view.toString() : null,
+            which: e.which,
+            x: e.x,
+            y: e.y
+        };
+
+        return o;
+    }
+};
+
 function utf8ToBase64(str) {
     const utf8Bytes = new TextEncoder().encode(str);
     return btoa(String.fromCharCode(...utf8Bytes));
@@ -48,6 +97,18 @@ const toast = (text, type) => {
             background: type === 'error' ? 'linear-gradient(to right, rgb(255, 95, 109), rgb(255, 195, 113));' : 'linear-gradient(to right, rgb(0, 176, 155), rgb(150, 201, 61))'
         }
     }).showToast();
+};
+
+const stringify_event = (e) => {
+    const obj = {};
+    for (let k in e) {
+        obj[k] = e[k];
+    }
+    return JSON.stringify(obj, (k, v) => {
+        if (v instanceof Node) return 'Node';
+        if (v instanceof Window) return 'Window';
+        return v;
+    }, ' ');
 };
 
 const req = {
@@ -175,7 +236,6 @@ function handle_data_channel(e) {
         data_channel = local_connection.createDataChannel("data_channel");
     };
     data_channel.onmessage = e => {
-        console.log('got a message');
         gateway.send(e.data);
     };
     data_channel.onopen = e => {
@@ -183,10 +243,11 @@ function handle_data_channel(e) {
         if (e) {
             const events_tool = events();
             video_elem.addEventListener('mousemove', events_tool.handle_mouse_event);
-            video_elem.addEventListener('click', events_tool.handle_mouse_event);
+            video_elem.addEventListener('mouseup', events_tool.handle_mouse_event);
+            video_elem.addEventListener('mousedown', events_tool.handle_mouse_event);
             document.addEventListener('contextmenu', function (event) {
                 event.preventDefault();
-                events_tool.handle_mouse_event(e);
+                events_tool.handle_mouse_event(event);
             });
             document.addEventListener('keyup', events_tool.handle_key_event);
         };
@@ -269,24 +330,20 @@ function handle_gateway_error(event) {
 const events = function () {
     // let click_count = 0;
     function handle_mouse_event(e) {
+        e = event_to_object(e);
         let x = e.clientX - this.offsetLeft;
         let y = e.clientY - this.offsetTop;
         const positions = { X: x, Y: y };
-        console.log('current mouse positions are:', positions);
-        let message;
-        if (e.type === 'click') {
-            message = { type: 'mouse', event: { type: e.type, positions, key: e.type === 'contextmenu' ? 'right' : 'left', dimensions: { width: video_elem.offsetWidth, height: video_elem.offsetHeight } } };
-        } else if (e.type === 'mousemove') {
-            message = { type: 'mouse', event: { type: e.type, positions, dimensions: { width: video_elem.offsetWidth, height: video_elem.offsetHeight } } };
-        }
-        if (message) {
-            local_connection.data_channel.send(JSON.stringify(message));
-        }
+        e.dimensions = { width: video_elem.offsetWidth, height: video_elem.offsetHeight };
+        e.positions = positions;
+        let message = { type: 'mouse', event: e };
+
+        local_connection.data_channel.send(JSON.stringify(message));
     };
 
     function handle_key_event(e) {
         e.preventDefault()
-        const message = { type: 'keyboard', event: { type: e.type, keyname: e.key, keys: { key: e.keyCode, ctrlKey: e.ctrlKey ? 17 : false, shiftKey: e.shiftKey ? 16 : false, altKey: e.altKey ? 18 : false }, code: e.code, metaKey : e.metaKey ? 91 : false} };
+        const message = { type: 'keyboard', event: { type: e.type, keyname: e.key, keys: { key: e.keyCode, ctrlKey: e.ctrlKey ? 17 : false, shiftKey: e.shiftKey ? 16 : false, altKey: e.altKey ? 18 : false }, code: e.code, metaKey: e.metaKey ? 91 : false } };
         local_connection.data_channel.send(JSON.stringify(message));
     };
 
