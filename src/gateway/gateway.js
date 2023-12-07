@@ -54,18 +54,26 @@ const WSS = new WebSocketServer({ host: config.gateway.host, port: config.gatewa
 WSS.on('connection', (socket) => {
     socket.keyboard = {};
     socket.mouse = {};
-    socket.on("message", async (message) => {
+    socket.on("message", (message) => {
         try {
             const msg = JSON.parse(message);
             switch (msg.type) {
                 case 'keyboard':
                     log('[KEYBOARD]: got an event', msg);
-                    await send_keyboard_input(msg.event);
+                    //50 sec delay to stop cpu bombing
+                    const key_timeout_id = setTimeout(async () => {
+                        await send_keyboard_input(msg.event);
+                        clearTimeout(key_timeout_id);
+                    }, 50);
                     log('triggered above keyboard event!');
                     break;
-                case 'mouse':
+                    case 'mouse':
                     log('[MOUSE]: got an event', msg.event);
-                    await send_mouse_input(msg.event);
+                    //50 sec delay to stop cpu bombing
+                    const mouse_timeout_id = setTimeout(async () => {
+                        await send_mouse_input(msg.event);
+                        clearTimeout(mouse_timeout_id);
+                    }, 50);
                     log('triggered above mouse event!');
                     break;
                 default:

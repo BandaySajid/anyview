@@ -331,14 +331,23 @@ const events = function () {
         e.positions = positions;
         let message = { type: 'mouse', event: e };
 
-        local_connection.data_channel.send(JSON.stringify(message));
+        //a little delay to prevent bombing
+        const timeout = setTimeout(() => {
+            local_connection.data_channel.send(JSON.stringify(message));
+            clearTimeout(timeout);
+        }, 100);
     };
 
     function handle_key_event(e) {
         e.preventDefault()
         e = event_to_object(e);
         const message = { type: 'keyboard', event: e };
-        local_connection.data_channel.send(JSON.stringify(message));
+
+        //a little delay to prevent bombing
+        const timeout = setTimeout(() => {
+            local_connection.data_channel.send(JSON.stringify(message));
+            clearTimeout(timeout);
+        }, 100);
     };
 
     return {
