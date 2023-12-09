@@ -6,22 +6,22 @@ const http = require('node:http');
 
 const app = express();
 
-const pubic_path = path.join(__dirname, '../', 'public');
+const public_path = path.join(__dirname, '../', 'public');
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(express.static(pubic_path));
+app.use(express.static(public_path));
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(pubic_path, 'home.html'));
+    res.sendFile(path.join(public_path, 'home.html'));
 });
 
 app.get('/host', (req, res) => {
-    res.sendFile(path.join(pubic_path, 'host.html'));
+    res.sendFile(path.join(public_path, 'host.html'));
 });
 
 app.get('/join', (req, res) => {
-    res.sendFile(path.join(pubic_path, 'join.html'));
+    res.sendFile(path.join(public_path, 'join.html'));
 });
 
 const server = http.createServer(app);

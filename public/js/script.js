@@ -1,3 +1,6 @@
+import * as firebase from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import * as store from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
 const peer_config = {
     iceServers: [
         { urls: "stun:stun.l.google.com:19302" },
@@ -5,15 +8,26 @@ const peer_config = {
 };
 
 let join_btn = document.querySelector('.join-btn');
-let host_btn = document.querySelector('.host-btn');
 let offer_key = document.querySelector('#offer_key');
-let answer_key = document.querySelector('#answer_key');
 let join_key = document.querySelector('#joinee-key');
 const video_elem = document.querySelector('video');
 const join_type = window.location.pathname.split('/')[1];
 
 let local_connection;
 let localMediaStream;
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCyt0ruF3qetpfowfKTBcxzvfRo1dCTylA",
+    authDomain: "anyview-77972.firebaseapp.com",
+    projectId: "anyview-77972",
+    storageBucket: "anyview-77972.appspot.com",
+    messagingSenderId: "417050409102",
+    appId: "1:417050409102:web:6f38f1200aca32cc61f1df",
+    measurementId: "G-5272S2SCPG"
+};
+
+const app = firebase.initializeApp(firebaseConfig);
+const firestore = store.getFirestore(app);
 
 //websocket gateway to execute peer events on OS.
 const gateway = new WebSocket('ws://127.0.0.1:10043');
@@ -64,20 +78,6 @@ var event_to_object = function (e) {
     }
 };
 
-function utf8ToBase64(str) {
-    const utf8Bytes = new TextEncoder().encode(str);
-    return btoa(String.fromCharCode(...utf8Bytes));
-};
-
-function base64ToUtf8(base64Str) {
-    const binaryStr = atob(base64Str);
-    const utf8Bytes = new Uint8Array(binaryStr.length);
-    for (let i = 0; i < binaryStr.length; i++) {
-        utf8Bytes[i] = binaryStr.charCodeAt(i);
-    }
-    return new TextDecoder().decode(utf8Bytes);
-};
-
 const toast = (text, type) => {
     Toastify({
         text: text,
@@ -92,73 +92,22 @@ const toast = (text, type) => {
     }).showToast();
 };
 
-const stringify_event = (e) => {
-    const obj = {};
-    for (let k in e) {
-        obj[k] = e[k];
-    }
-    return JSON.stringify(obj, (k, v) => {
-        if (v instanceof Node) return 'Node';
-        if (v instanceof Window) return 'Window';
-        return v;
-    }, ' ');
-};
-
-const req = {
-    get: async (url, body) => {
-        try {
-            const resp = await fetch(url, {
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                method: 'GET',
-                body: JSON.stringify(body)
-            });
-
-            const json_resp = await resp.json();
-
-            return { status: resp.status, data: json_resp };
-
-        } catch (error) {
-            const err_msg = '[ERROR]: something went wrong with the GET request!';
-            toast(err_msg, 'error');
-            console.log(err_messsage, error);
-        };
-    },
-
-    post: async (url, body) => {
-        try {
-            const resp = await fetch(url, {
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                method: 'POST',
-                body: JSON.stringify(body)
-            });
-
-            const json_resp = await resp.json();
-
-            return { status: resp.status, data: json_resp };
-
-        } catch (error) {
-            const err_msg = '[ERROR]: something went wrong with the POST request!';
-            toast(err_msg, 'error');
-            console.log(err, error);
-        };
-    }
-};
-
 const create_local_connection = async () => {
-    local_connection = new RTCPeerConnection(peer_config);
-    local_connection.onicecandidate = (e) => {
-        handle_on_ice_candidate(local_connection.localDescription);
-    };
+    let callDoc;
+    let offerCandidates;
+    let answerCandidates;
+    let call_doc_id = '6QfdzxnAS6wk2L4CpmUj';
 
-    local_connection.oniceconnectionstatechange = (state) => {
-        if (state === 'connected') {
-            alert('Press F11 to fullscreen, otherwise there will be problems!');
-        };
+    if (join_type === 'host') {
+        callDoc = await store.doc(firestore, 'calls', call_doc_id);
+    } else if (join_type === 'join') {
+        call_doc_id = join_key.value;
+        callDoc = store.doc(firestore, 'calls', call_doc_id);
     };
+    offerCandidates = store.collection(callDoc, 'offer');
+    answerCandidates = store.collection(callDoc, 'answer');
+
+    local_connection = new RTCPeerConnection(peer_config);
 
     local_connection.addEventListener('track', async (event) => {
         const [remoteStream] = event.streams;
@@ -167,7 +116,7 @@ const create_local_connection = async () => {
 
     if (join_type === 'host') {
         await set_media_tracks({
-            video: { frameRate: 60, displaySurface: 'monitor' },
+            video: { framerRate: 60, displaySurface: 'monitor' },
             audio: false,
         });
         handle_data_channel();
@@ -175,33 +124,94 @@ const create_local_connection = async () => {
         local_connection.ondatachannel = handle_data_channel;
     };
 
+    local_connection.onicecandidate = (e) => {
+        if (e.candidate) {
+            if (join_type === 'host') {
+                handle_on_ice_candidate(e.candidate.toJSON(), offerCandidates, call_doc_id);
+            } else {
+                handle_on_ice_candidate(e.candidate.toJSON(), answerCandidates);
+            }
+        }
+    };
+
+    if (join_type === 'host') {
+        store.onSnapshot(callDoc, (snapshot) => {
+            const data = snapshot.data();
+            if (!local_connection.currentRemoteDescription && data?.answer) {
+                handle_remote_description(data.answer)
+            }
+        });
+
+        // When answered, add candidate to peer connection
+        store.onSnapshot(answerCandidates, (snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                if (change.type === 'added') {
+                    const candidate = new RTCIceCandidate(change.doc.data());
+                    local_connection.addIceCandidate(candidate);
+                }
+            });
+        });
+    } else if (join_type === 'join') {
+        const callSnapshot = await store.getDoc(callDoc);
+        const callData = callSnapshot.data();
+        const offerDescription = callData.offer;
+        await handle_remote_description(offerDescription, callDoc);
+
+        store.onSnapshot(offerCandidates, (snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                if (change.type === 'added') {
+                    let data = change.doc.data();
+                    local_connection.addIceCandidate(new RTCIceCandidate(data));
+                }
+            });
+        });
+    };
+
+    // Listen for remote answer
+
+    local_connection.oniceconnectionstatechange = (state) => {
+        if (state === 'connected') {
+            alert('Press F11 to fullscreen, otherwise there will be problems!');
+        };
+    };
+
     local_connection.onconnectionstatechange = handle_connection_state_change;
 
     if (join_type === 'host') {
-        create_offer();
+        create_offer(callDoc);
     };
 };
 
-async function handle_on_ice_candidate(candidate) {
+async function handle_on_ice_candidate(candidate, fire_candidates, call_doc_id) {
     if (join_type === 'host') {
-        offer_key.value = utf8ToBase64(JSON.stringify(candidate));
+        offer_key.value = call_doc_id;
+        await store.addDoc(fire_candidates, candidate);
     } else if (join_type === 'join') {
-        join_key.value = utf8ToBase64(JSON.stringify(candidate));
+        join_key.value = call_doc_id;
+        await store.addDoc(fire_candidates, candidate);
     };
 };
 
-function handle_remote_description(remoteDescription) {
-    local_connection.setRemoteDescription(remoteDescription).then(a => {
-        if (join_type === 'join') {
-            create_answer();
-        };
-    });
+async function handle_remote_description(description, call_doc) {
+    const final = new RTCSessionDescription(description);
+    await local_connection.setRemoteDescription(final)
+    if (join_type === 'join') {
+        await create_answer(call_doc);
+    };
 };
 
-async function create_offer() {
+async function create_offer(call_doc) {
     try {
-        const offer = await local_connection.createOffer();
-        await local_connection.setLocalDescription(offer);
+        const offerDescription = await local_connection.createOffer();
+        await local_connection.setLocalDescription(offerDescription);
+
+        const offer = {
+            sdp: offerDescription.sdp,
+            type: offerDescription.type,
+        };
+
+        await store.setDoc(call_doc, { offer });
+
     } catch (error) {
         const err_msg = '[ERROR]: cannot create offer!';
         toast(err_msg, 'error');
@@ -209,10 +219,18 @@ async function create_offer() {
     };
 };
 
-async function create_answer() {
+async function create_answer(call_doc) {
     try {
-        const answer = await local_connection.createAnswer();
-        await local_connection.setLocalDescription(answer);
+        const answerDescription = await local_connection.createAnswer();
+        await local_connection.setLocalDescription(answerDescription);
+
+        const answer = {
+            type: answerDescription.type,
+            sdp: answerDescription.sdp,
+        };
+
+        await store.updateDoc(call_doc, { answer })
+
     } catch (error) {
         const err_msg = '[ERROR]: cannot create answer!';
         toast(err_msg, 'error');
@@ -263,10 +281,9 @@ async function set_media_tracks(displayMediaOptions) {
 };
 
 async function handle_connection_state_change(ev) {
-    console.log('state changed', ev.currentTarget.connectionState);
     if (ev.currentTarget.connectionState === 'connected') {
         if (join_type === 'host') {
-            document.querySelector('.container').innerHTML = 'STREAMING TO THE PEER !!!';
+            document.querySelector('.host-page').innerHTML = 'STREAMING TO THE PEER !!!';
         } else if (join_type === 'join') {
             document.querySelector('.container').classList.add('display-none');
             video_elem.style.display = 'block';
@@ -278,14 +295,10 @@ async function handle_connection_state_change(ev) {
 document.addEventListener('DOMContentLoaded', async () => {
     if (join_type === 'host') {
         create_local_connection();
-        host_btn.addEventListener('click', async (event) => {
-            handle_remote_description(JSON.parse(base64ToUtf8(answer_key.value)));
-        });
 
     } else if (join_type === 'join') {
         join_btn.addEventListener('click', async (event) => {
             create_local_connection();
-            handle_remote_description(JSON.parse(base64ToUtf8(join_key.value)));
         });
     };
 });

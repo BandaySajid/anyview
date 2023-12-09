@@ -5,7 +5,8 @@
     "ws": "^8.14.2"
   },
   "scripts": {
-    "start": "export MODE=DEV && node src/app.js"
+    "start": "export MODE=DEV && node src/app.js",
+    "build": "webpack --mode=development"
   },
   "bin": "src/app.js",
   "name": "anyview",
@@ -19,12 +20,15 @@
   "author": "Sajid Banday",
   "license": "ISC",
   "pkg": {
-    "scripts": "public/**/*.js",
+    "scripts": "anyview-frontend/**/*.js",
     "assets": [
-      "public/**/*",
+      "anyview-frontend/**/*",
       "node_modules/@nut-tree/**/*.node"
     ],
-    "targets": [ "latest-linux-x64", "latest-win-x64" ],
+    "targets": [
+      "latest-linux-x64",
+      "latest-win-x64"
+    ],
     "outputPath": "dist"
   }
 }
