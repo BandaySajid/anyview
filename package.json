@@ -20,9 +20,9 @@
   "author": "Sajid Banday",
   "license": "ISC",
   "pkg": {
-    "scripts": "anyview-frontend/**/*.js",
+    "scripts": "public/**/*.js",
     "assets": [
-      "anyview-frontend/**/*",
+      "public/**/*",
       "node_modules/@nut-tree/**/*.node"
     ],
     "targets": [
