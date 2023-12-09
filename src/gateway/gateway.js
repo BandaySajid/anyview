@@ -60,7 +60,7 @@ WSS.on('connection', (socket) => {
             switch (msg.type) {
                 case 'keyboard':
                     log('[KEYBOARD]: got an event', msg);
-                    //50 sec delay to stop cpu bombing
+                    //50ms delay to stop cpu bombing
                     const key_timeout_id = setTimeout(async () => {
                         await send_keyboard_input(msg.event);
                         clearTimeout(key_timeout_id);
