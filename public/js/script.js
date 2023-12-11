@@ -97,11 +97,17 @@ const create_local_connection = async () => {
     let offerCandidates;
     let answerCandidates;
     let call_doc_id;
-    let callsCollectionRef = store.collection(firestore, 'calls');
 
     if (join_type === 'host') {
-        callDoc = await store.addDoc(callsCollectionRef, {});
-        call_doc_id = callDoc.id;
+        if (localStorage.getItem('room_id')) {
+            call_doc_id = localStorage.getItem('room_id');
+            callDoc = await store.doc(firestore, 'calls', call_doc_id);
+        } else {
+            let callsCollectionRef = store.collection(firestore, 'calls');
+            callDoc = await store.addDoc(callsCollectionRef, {});
+            call_doc_id = callDoc.id;
+            localStorage.setItem('room_id', call_doc_id);
+        };
     } else if (join_type === 'join') {
         call_doc_id = join_key.value;
         callDoc = await store.doc(firestore, 'calls', call_doc_id);
