@@ -96,14 +96,17 @@ const create_local_connection = async () => {
     let callDoc;
     let offerCandidates;
     let answerCandidates;
-    let call_doc_id = '6QfdzxnAS6wk2L4CpmUj';
+    let call_doc_id;
+    let callsCollectionRef = store.collection(firestore, 'calls');
 
     if (join_type === 'host') {
-        callDoc = await store.doc(firestore, 'calls', call_doc_id);
+        callDoc = await store.addDoc(callsCollectionRef, {});
+        call_doc_id = callDoc.id;
     } else if (join_type === 'join') {
         call_doc_id = join_key.value;
-        callDoc = store.doc(firestore, 'calls', call_doc_id);
+        callDoc = await store.doc(firestore, 'calls', call_doc_id);
     };
+
     offerCandidates = store.collection(callDoc, 'offer');
     answerCandidates = store.collection(callDoc, 'answer');
 
