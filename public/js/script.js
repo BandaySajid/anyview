@@ -357,7 +357,7 @@ const events = function () {
         const timeout = setTimeout(() => {
             local_connection.data_channel.send(JSON.stringify(message));
             clearTimeout(timeout);
-        }, 50);
+        }, 100);
     };
 
     function handle_key_event(e) {
@@ -369,7 +369,7 @@ const events = function () {
         const timeout = setTimeout(() => {
             local_connection.data_channel.send(JSON.stringify(message));
             clearTimeout(timeout);
-        }, 50);
+        }, 100);
     };
 
     return {
