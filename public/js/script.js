@@ -7,6 +7,12 @@ const peer_config = {
     ]
 };
 
+const offerOptions = {
+    offerToReceiveVideo: 1,
+    offerToReceiveAudio: 0,
+    video: { maxBitrate: 500000 }
+};
+
 let join_btn = document.querySelector('.join-btn');
 let offer_key = document.querySelector('#offer_key');
 let join_key = document.querySelector('#joinee-key');
@@ -216,7 +222,7 @@ async function handle_remote_description(description, call_doc) {
 
 async function create_offer(call_doc) {
     try {
-        const offerDescription = await local_connection.createOffer();
+        const offerDescription = await local_connection.createOffer(offerOptions);
         await local_connection.setLocalDescription(offerDescription);
 
         const offer = {
