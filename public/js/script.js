@@ -125,7 +125,12 @@ const create_local_connection = async () => {
 
     if (join_type === 'host') {
         await set_media_tracks({
-            video: { framerRate: 60, displaySurface: 'monitor' },
+            video: {
+                framerRate: 60, 
+                displaySurface: 'monitor',
+                width: { max: 640 },
+                height: { max: 480 },
+            },
             audio: false,
         });
         handle_data_channel();
