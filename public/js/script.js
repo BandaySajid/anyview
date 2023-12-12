@@ -126,10 +126,10 @@ const create_local_connection = async () => {
     if (join_type === 'host') {
         await set_media_tracks({
             video: {
-                framerRate: 60, 
+                width: { max: 320 },    // Set maximum width
+                height: { max: 240 },   // Set maximum height
+                frameRate: { max: 50 },
                 displaySurface: 'monitor',
-                width: { max: 640 },
-                height: { max: 480 },
             },
             audio: false,
         });
