@@ -358,11 +358,7 @@ const events = function () {
         e.positions = positions;
         let message = { type: 'mouse', event: e };
 
-        //a little delay to prevent bombing
-        const timeout = setTimeout(() => {
-            local_connection.data_channel.send(JSON.stringify(message));
-            clearTimeout(timeout);
-        }, 100);
+        local_connection.data_channel.send(JSON.stringify(message));
     };
 
     function handle_key_event(e) {
@@ -370,11 +366,7 @@ const events = function () {
         e = event_to_object(e);
         const message = { type: 'keyboard', event: e };
 
-        //a little delay to prevent bombing
-        const timeout = setTimeout(() => {
-            local_connection.data_channel.send(JSON.stringify(message));
-            clearTimeout(timeout);
-        }, 100);
+        local_connection.data_channel.send(JSON.stringify(message));
     };
 
     return {
