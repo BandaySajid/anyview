@@ -127,8 +127,7 @@ const create_local_connection = async () => {
     if (join_type === 'host') {
         await set_media_tracks({
             video: {
-                frameRate: 30,
-                height : 720,
+                frameRate: 50,
                 displaySurface: 'monitor',
             },
             audio: false,
