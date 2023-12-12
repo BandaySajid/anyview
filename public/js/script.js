@@ -7,12 +7,6 @@ const peer_config = {
     ]
 };
 
-const offerOptions = {
-    offerToReceiveVideo: 1,
-    offerToReceiveAudio: 0,
-    video: { maxBitrate: 500000 }
-};
-
 let join_btn = document.querySelector('.join-btn');
 let offer_key = document.querySelector('#offer_key');
 let join_key = document.querySelector('#joinee-key');
@@ -99,6 +93,7 @@ const toast = (text, type) => {
 };
 
 const create_local_connection = async () => {
+    
     let callDoc;
     let offerCandidates;
     let answerCandidates;
@@ -132,7 +127,8 @@ const create_local_connection = async () => {
     if (join_type === 'host') {
         await set_media_tracks({
             video: {
-                frameRate: { max: 60 },
+                frameRate: 60,
+                height : 480,
                 displaySurface: 'monitor',
             },
             audio: false,
@@ -220,7 +216,7 @@ async function handle_remote_description(description, call_doc) {
 
 async function create_offer(call_doc) {
     try {
-        const offerDescription = await local_connection.createOffer(offerOptions);
+        const offerDescription = await local_connection.createOffer();
         await local_connection.setLocalDescription(offerDescription);
 
         const offer = {
